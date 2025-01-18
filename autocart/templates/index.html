@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Sender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            margin-top: 50px;
+            width: 90%;
+            max-width: 600px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .products {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .product-entry {
+            display: flex;
+            gap: 10px;
+        }
+        .remove-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .remove-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Send Products to Raspberry Pi</h1>
+        <form id="product-form">
+            <div class="products" id="products-container">
+                <div class="product-entry">
+                    <input type="text" name="product" placeholder="Enter product name" required>
+                    <button type="button" class="remove-button" onclick="removeProduct(this)">Remove</button>
+                </div>
+            </div>
+            <button type="button" class="button" onclick="addProduct()">Add Product</button>
+            <button type="submit" class="button">Send Products</button>
+        </form>
+    </div>
+    <script>
+        const productsContainer = document.getElementById("products-container");
+
+        function addProduct() {
+            const div = document.createElement("div");
+            div.className = "product-entry";
+            div.innerHTML = `
+                <input type="text" name="product" placeholder="Enter product name" required>
+                <button type="button" class="remove-button" onclick="removeProduct(this)">Remove</button>
+            `;
+            productsContainer.appendChild(div);
+        }
+
+        function removeProduct(button) {
+            button.parentElement.remove();
+        }
+
+        document.getElementById("product-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const products = Array.from(
+                document.querySelectorAll('input[name="product"]')
+            ).map((input) => input.value);
+            try {
+                const response = await fetch("/update_products", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ products }),
+                });
+                const result = await response.json();
+                alert(result.message || "Products sent successfully!");
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to send products. Check the server.");
+            }
+        });
+    </script>
+</body>
+</html>
